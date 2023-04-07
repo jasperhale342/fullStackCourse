@@ -1,0 +1,6 @@
+query Me{
+    me{
+        ...RegularUser
+    }
+}
+# To see if someone is logged in or not

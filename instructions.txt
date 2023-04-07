@@ -1,0 +1,3 @@
+To add mutaion or query:
+- paste new graphql mutation or query into the graphql folder in web
+- run yarn gen
