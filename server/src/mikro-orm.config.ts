@@ -11,6 +11,7 @@ export default {
     },
     entities: [Post, User],
     dbName: "fullstackdatabase",
+    password: "root",
     debug:  !__prod__,
     type: 'postgresql'
 } as Parameters<typeof MikroORM.init>[0];

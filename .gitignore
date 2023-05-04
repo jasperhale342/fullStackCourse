@@ -2,3 +2,5 @@ server/node_modules/
 web/node_modules/
 .vs*
 /node_modules
+server/dist
+src/migrations

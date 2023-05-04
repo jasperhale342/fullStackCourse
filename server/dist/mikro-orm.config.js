@@ -14,6 +14,7 @@ exports.default = {
     },
     entities: [Post_1.Post, User_1.User],
     dbName: "fullstackdatabase",
+    password: "root",
     debug: !constant_1.__prod__,
     type: 'postgresql'
 };
