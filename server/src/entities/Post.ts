@@ -1,24 +1,24 @@
-import { Entity, Property, PrimaryKey } from "@mikro-orm/core";
+import { Entity, Column, UpdateDateColumn, CreateDateColumn, PrimaryGeneratedColumn, BaseEntity } from "typeorm";
 import { Field, ObjectType } from "type-graphql";
 
 @ObjectType()
 @Entity()
-export class Post {
+export class Post extends BaseEntity{
 
   @Field()
-  @PrimaryKey()
+  @PrimaryGeneratedColumn()
   id!: number;
   
   @Field(() => String)
-  @Property({type: 'date'})
-  createdAt: Date = new Date();
+  @CreateDateColumn()
+  createdAt: Date;
  
   @Field(() => String)
-  @Property({ type: 'date', onUpdate: () => new Date() })
-  updatedAt: Date = new Date();
+  @UpdateDateColumn()
+  updatedAt: Date ;
   
   @Field() // can choose what to expose and what to hide. dont out @Field if you want to hide
-  @Property({type: "text"})
+  @Column()
   title!: string;
 
 }

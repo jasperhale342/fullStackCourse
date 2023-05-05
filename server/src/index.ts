@@ -1,7 +1,5 @@
 import "reflect-metadata"
-import { MikroORM } from "@mikro-orm/core";
 import { COOKIE_NAME, __prod__ } from "./constant";
-import microConfig from "./mikro-orm.config";
 import express from 'express';
 import {ApolloServer} from 'apollo-server-express';
 import { buildSchema } from "type-graphql";
@@ -10,18 +8,26 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import Redis from 'ioredis';
 import connectRedis from 'connect-redis';
+import { DataSource,  } from "typeorm";
 
 import cors from 'cors'
-// import { User } from "./entities/User";
-// import { Post } from "./entities/Post";
+import { User } from "./entities/User";
+import { Post } from "./entities/Post";
+
 
 const main  = async () =>{
+    const datasource =  new DataSource({
+    type:'postgres',
+    database: 'lireddit2',
+    username: 'root',
+    password: 'root',
+    logging: true,
+    synchronize: true, // create tables automatically, dont need to run migrations 
+    entities: [Post, User],
+  })
   
-  
-  const orm = await MikroORM.init(microConfig);
-  // await orm.em.nativeDelete(User, {}) 
-  // await orm.em.nativeDelete(Post, {}) 
-  await orm.getMigrator().up();
+
+ 
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies
   const redis = new Redis();
@@ -56,7 +62,7 @@ const main  = async () =>{
             resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false
         }),
-        context: ({req, res}) => ({em: orm.em, req, res, redis}) //special object that is accessable by all resolvers, can also access response and request
+        context: ({req, res}) => ({ req, res, redis}) //special object that is accessable by all resolvers, can also access response and request
     });
 
     apolloServer.applyMiddleware({app, cors: false });
@@ -77,4 +83,4 @@ main().catch((err) => {
     console.error(err)
 });
 
-
+export const dataSource = connToDS()
