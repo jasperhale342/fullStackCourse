@@ -9,25 +9,31 @@ import { UserResolver } from "./resolvers/user";
 import Redis from 'ioredis';
 import connectRedis from 'connect-redis';
 import { DataSource,  } from "typeorm";
-
 import cors from 'cors'
 import { User } from "./entities/User";
 import { Post } from "./entities/Post";
 
 
-const main  = async () =>{
-    const datasource =  new DataSource({
+
+
+
+export const dataSource =  new DataSource({
     type:'postgres',
     database: 'lireddit2',
-    username: 'root',
-    password: 'root',
     logging: true,
     synchronize: true, // create tables automatically, dont need to run migrations 
     entities: [Post, User],
   })
+
+  
+  // dataSource.dropDatabase()
   
 
- 
+  
+
+ const main  = async () =>{
+  await dataSource.initialize();
+
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies
   const redis = new Redis();
@@ -57,13 +63,13 @@ const main  = async () =>{
       },
     }));
 
-    const apolloServer = new ApolloServer({
-        schema: await buildSchema({ 
-            resolvers: [HelloResolver, PostResolver, UserResolver],
-            validate: false
+      const apolloServer = new ApolloServer({
+        schema: await buildSchema({
+          resolvers: [HelloResolver, PostResolver, UserResolver],
+          validate: false
         }),
-        context: ({req, res}) => ({ req, res, redis}) //special object that is accessable by all resolvers, can also access response and request
-    });
+        context: ({ req, res }) => ({ req, res, redis }) //special object that is accessable by all resolvers, can also access response and request
+      });
 
     apolloServer.applyMiddleware({app, cors: false });
 
@@ -77,10 +83,22 @@ const main  = async () =>{
         console.log("server started on localhost:4000")
     });
 
-  
+  //  await  Post.delete({})
 }
 main().catch((err) => { 
     console.error(err)
 });
 
-export const dataSource = connToDS()
+// async function bootstrap(app:any, redis:any) { // should probably make types
+//   const apolloServer = new ApolloServer({
+//     schema: await buildSchema({
+//       resolvers: [HelloResolver, PostResolver, UserResolver],
+//       validate: false
+//     }),
+//     context: ({ req, res }) => ({ req, res, redis }) //special object that is accessable by all resolvers, can also access response and request
+//   });
+
+// apolloServer.applyMiddleware({app, cors: false });
+// }
+
+

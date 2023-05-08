@@ -1,5 +1,6 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Field, Int, ObjectType } from "type-graphql";
+import { Post } from "./Post";
 
 @ObjectType()
 @Entity()
@@ -27,5 +28,8 @@ export class User extends BaseEntity{
   @Field() // can choose what to expose and what to hide. dont out @Field if you want to hide
   @Column({type: "text", unique: true}) // only one person can have this username
   email!: string;
+
+  @OneToMany(() => Post, post =>post.creator)
+  posts: Post[]
 
 }

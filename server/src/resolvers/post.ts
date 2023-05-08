@@ -1,5 +1,14 @@
+import { MyContext } from "src/types";
 import { Post } from "../entities/Post";
-import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Field, InputType, Mutation, Query, Resolver } from "type-graphql";
+
+@InputType()
+class PostInput {
+    @Field()
+    title:string
+    @Field()
+    text: string
+}
 
 
 @Resolver()
@@ -17,9 +26,18 @@ export class PostResolver {
 
     @Mutation(()=> Post) // in graphql you have to specify mutation when making a query
     async createPost(
-        @Arg("title") title:string,
+        @Arg("input") input: PostInput,
+        @Ctx() {req}: MyContext
     ): Promise<Post>{
-        return Post.create({title}).save();
+        console.log("session id: ", req.session)
+        if(!req.session.userId){
+            throw new Error("Not Authenticated")
+        }
+        return Post.create({
+            ...input,
+            creatorId: req.session.userId
+
+        }).save();
     }
 
     @Mutation(()=> Post) // in graphql you have to specify mutation when making a query

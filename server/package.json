@@ -8,10 +8,7 @@
     "dev": "nodemon dist/index.js",
     "start": "node dist/index.js",
     "start2": "ts-node src/index.ts",
-    "dev2": "nodemon --exec ts-node src/index.ts",
-    "create:migration": "mikro-orm migration:create",
-    "up:migration": " mikro-orm migration:up",
-    "down:migration": "mikro-orm migration:down"
+    "dev2": "nodemon --exec ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -31,10 +28,6 @@
   },
   "dependencies": {
     "@apollographql/graphql-playground-html": "1.6.4",
-    "@mikro-orm/cli": "^4.5.6",
-    "@mikro-orm/core": "^4.5.6",
-    "@mikro-orm/migrations": "^4.5.6",
-    "@mikro-orm/postgresql": "^4.5.6",
     "apollo-server-express": "^2.25.2",
     "argon2": "^0.28.2",
     "class-validator": "^0.13.1",
