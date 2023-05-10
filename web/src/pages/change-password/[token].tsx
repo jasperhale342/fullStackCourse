@@ -12,7 +12,7 @@ import { createUrqlClient } from "../../../utils/createUrqlClient";
 import NextLink from 'next/link'
 
 //for next js, files have this convention [token] if you want a variable in the url
- const ChangePassword: NextPage< {token: string}> = ({token}) => {
+ const ChangePassword: NextPage = () => {
     const [, changePasword] = useChangePasswordMutation()
     const [tokenError, setTokenError] = useState(''); // make a state for a token error
     return (  <Wrapper variant="small"> 
@@ -21,7 +21,7 @@ import NextLink from 'next/link'
     onSubmit={async (values, {setErrors}) => {
         const response = await changePasword({
             newPassword: values.newPassword,
-            token
+            token: typeof router.query.token === "string" ? router.query.token : ""
         });
         if (response.data?.changePassword.errors){
             const errorMap = toErrorMap(response.data.changePassword.errors)
@@ -63,9 +63,5 @@ import NextLink from 'next/link'
     );
 }
 // getInitialProps is a special function to get the query params
-ChangePassword.getInitialProps = ({query}) =>{
-    return {
-        token: query.token as string
-    }
-}
+//if you need to server side render pages then you would have to use initial props
 export default withUrqlClient(createUrqlClient)( ChangePassword)

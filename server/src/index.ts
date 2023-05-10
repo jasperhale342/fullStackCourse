@@ -12,6 +12,7 @@ import { DataSource,  } from "typeorm";
 import cors from 'cors'
 import { User } from "./entities/User";
 import { Post } from "./entities/Post";
+import path from "path";
 
 
 
@@ -25,6 +26,7 @@ export const dataSource =  new DataSource({
     logging: true,
     synchronize: true, // create tables automatically, dont need to run migrations 
     entities: [Post, User],
+    migrations: [path.join(__dirname, "./migrations/*")]
   })
 
   
@@ -35,6 +37,7 @@ export const dataSource =  new DataSource({
 
  const main  = async () =>{
   await dataSource.initialize();
+  dataSource.runMigrations()
 
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies

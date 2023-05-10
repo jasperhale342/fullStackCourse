@@ -1,7 +1,8 @@
 import { MyContext } from "src/types";
 import { Post } from "../entities/Post";
-import { Arg, Ctx, Field, InputType, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
+import { Arg, Ctx, Field, InputType, Int, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
 import { isAuth } from "../middleware/isAuth";
+import { dataSource } from "../index";
 
 @InputType()
 class PostInput {
@@ -16,8 +17,25 @@ class PostInput {
 export class PostResolver {
 
     @Query(()=>[Post])
-    posts(): Promise<Post[]>{
-        return Post.find(); //finder returns a promise of Post
+    async posts( 
+        @Arg('limit', ()=>Int) limit:number,
+        @Arg('cursor', ()=> String, {nullable: true}) cursor: string | null //curser based pagination 
+        //  how many do we want after a certain position 
+    ): Promise<Post[]>{
+        const realLimit = Math.min(50, limit)
+        const posts=  await dataSource
+            .getRepository(Post)
+            .createQueryBuilder("p")
+            .orderBy('"createdAt"', "DESC")
+            .take(realLimit)
+
+        if (cursor){
+            posts.where('"createdAt" < : cursor', 
+                { cursor: new Date(parseInt(cursor)) 
+            })
+        }
+        return posts.getMany()
+        
     }
 
     @Query(() => Post, {nullable: true})
