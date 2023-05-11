@@ -4,26 +4,49 @@ import { NavBar } from "../components/NavBar"
 import { usePostsQuery } from "../generated/graphql"
 import { Layout } from "../components/Layout"
 import NextLink from "next/link"
-import {Link} from "@chakra-ui/react"
+import {Box, Button, Flex, Heading, Link, Stack, Text} from "@chakra-ui/react"
+import { useState } from "react"
 
 const Index = () => {
-    const [{data}] = usePostsQuery({
-        variables: {
-            limit: 10
-        } 
+    const [variables, setVariables] = useState({limit:10, cursor: null as null | string})
+    const [{data, fetching}] = usePostsQuery({
+        variables,
     });
+    console.log(variables)
+    
+    if (!fetching && !data){
+        return <div> failed to get stuff </div>
+    }
+
     return (
         <Layout>
+            <Flex align="center">
+                <Heading>LiReddit</Heading>
             <NextLink href="/create-post">
-            <Link>
-            create post
-            </Link>
-            </NextLink>
+                    <Link ml="auto">
+                    create post
+                    </Link>
+                </NextLink>
+            </Flex>
             <br></br>
-
-            
-            <br></br>
-            {!data ? null : data.posts.map(p=> <div key={p.id}> {p.title}</div>)}
+            {fetching && !data ? (
+                <div> loading ...</div>
+            ): (<Stack spacing={8}>
+                {
+                    data!.posts.map((p)=> (
+                    <Box key={p.id} p={5} shadow='md' borderWidth='1px' >
+                        <Heading fontSize='xl'>{p.title}</Heading>
+                        <Text mt={4}>{p.textSnippet}</Text> 
+                    </Box>
+                    )
+                )}
+            </Stack>) }
+            { data ?<Flex>
+            <Button onClick={()=>{setVariables({
+                limit:variables.limit,
+                cursor: data.posts[data.posts.length-1].createdAt,
+            })}} my={8} isLoading={fetching}> load more</Button>
+            </Flex>: null}
         </Layout>
     )
     

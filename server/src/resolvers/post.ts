@@ -1,6 +1,6 @@
 import { MyContext } from "src/types";
 import { Post } from "../entities/Post";
-import { Arg, Ctx, Field, InputType, Int, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
+import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, Query, Resolver, Root, UseMiddleware } from "type-graphql";
 import { isAuth } from "../middleware/isAuth";
 import { dataSource } from "../index";
 
@@ -13,8 +13,14 @@ class PostInput {
 }
 
 
-@Resolver()
+@Resolver(Post) // need to specify what you are resolving. In the case its the 'Post' object type
 export class PostResolver {
+
+    @FieldResolver(() => String)
+    textSnippet(
+        @Root() root: Post){ 
+        return root.text.slice(0, 50)
+    }
 
     @Query(()=>[Post])
     async posts( 
@@ -23,14 +29,14 @@ export class PostResolver {
         //  how many do we want after a certain position 
     ): Promise<Post[]>{
         const realLimit = Math.min(50, limit)
-        const posts=  await dataSource
+        const posts =  dataSource
             .getRepository(Post)
             .createQueryBuilder("p")
             .orderBy('"createdAt"', "DESC")
             .take(realLimit)
 
         if (cursor){
-            posts.where('"createdAt" < : cursor', 
+            posts.where('"createdAt" < :cursor', 
                 { cursor: new Date(parseInt(cursor)) 
             })
         }

@@ -29,15 +29,11 @@ export const dataSource =  new DataSource({
     migrations: [path.join(__dirname, "./migrations/*")]
   })
 
-  
-  // dataSource.dropDatabase()
-  
-
-  
 
  const main  = async () =>{
   await dataSource.initialize();
-  dataSource.runMigrations()
+  // await dataSource.runMigrations();
+
 
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies
