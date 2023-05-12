@@ -13,6 +13,7 @@ import cors from 'cors'
 import { User } from "./entities/User";
 import { Post } from "./entities/Post";
 import path from "path";
+import { Upvote } from "./entities/Upvote";
 
 
 
@@ -25,13 +26,14 @@ export const dataSource =  new DataSource({
     database: 'lireddit2',
     logging: true,
     synchronize: true, // create tables automatically, dont need to run migrations 
-    entities: [Post, User],
+    entities: [Post, User, Upvote],
     migrations: [path.join(__dirname, "./migrations/*")]
   })
 
 
  const main  = async () =>{
   await dataSource.initialize();
+  // await Post.delete({})
   // await dataSource.runMigrations();
 
 

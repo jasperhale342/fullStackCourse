@@ -1,6 +1,7 @@
-import { Entity, Column, UpdateDateColumn, CreateDateColumn, PrimaryGeneratedColumn, BaseEntity, ManyToOne } from "typeorm";
+import { Entity, Column, UpdateDateColumn, CreateDateColumn, PrimaryGeneratedColumn, BaseEntity, ManyToOne, OneToMany } from "typeorm";
 import { Field, ObjectType } from "type-graphql";
 import { User } from "./User";
+import { Upvote } from "./Upvote";
 
 @ObjectType()
 @Entity()
@@ -34,7 +35,11 @@ export class Post extends BaseEntity{
   @Column()
   creatorId: number
 
+  @Field()
   @ManyToOne(()=>User, user=>user.posts) //setup forgien key in Users table
   creator: User;
+  
+  @OneToMany(() => Upvote, upvote =>upvote.user)
+  upvotes: Upvote[]
 
 }

@@ -32,67 +32,24 @@ export const cursorPagination =(): Resolver => {
     const results: string[] = []
     const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`
     const isItInCache = cache.resolve(entityKey,fieldKey)
-    console.log("fieldArgs: ", fieldArgs)
-    console.log("key is ", fieldKey)
+  
     info.partial = !isItInCache; //tell urql when to do a query 
-    console.log("info partial: ", !isItInCache)
+    let hasMore = true;
     fieldInfos.forEach((fi) => {
-      const data = cache.resolve(entityKey, fi.fieldKey) as string []
+      const key = cache.resolve(entityKey, fi.fieldKey) as string 
+      const data = cache.resolve(key, "posts") as string[];
+      const _hasMore = cache.resolve(key, "hasMore")
+      if (!_hasMore){
+        hasMore = _hasMore as boolean
+      }
       results.push(...data)
     })
     console.log("result is ", results)
-    return results
-    // const visited = new Set();
-    // let result: NullArray<string> = [];
-    // let prevOffset: number | null = null;
-
-    // for (let i = 0; i < size; i++) {
-    //   const { fieldKey, arguments: args } = fieldInfos[i];
-    //   if (args === null || !compareArgs(fieldArgs, args)) {
-    //     continue;
-    //   }
-
-    //   const links = cache.resolve(entityKey, fieldKey) as string[];
-    //   const currentOffset = args[cursorArgument];
-
-    //   if (
-    //     links === null ||
-    //     links.length === 0 ||
-    //     typeof currentOffset !== 'number'
-    //   ) {
-    //     continue;
-    //   }
-
-    //   const tempResult: NullArray<string> = [];
-
-    //   for (let j = 0; j < links.length; j++) {
-    //     const link = links[j];
-    //     if (visited.has(link)) continue;
-    //     tempResult.push(link);
-    //     visited.add(link);
-    //   }
-
-    //   if (
-    //     (!prevOffset || currentOffset > prevOffset) ===
-    //     (mergeMode === 'after')
-    //   ) {
-    //     result = [...result, ...tempResult];
-    //   } else {
-    //     result = [...tempResult, ...result];
-    //   }
-
-    //   prevOffset = currentOffset;
-    // }
-
-    // const hasCurrentPage = cache.resolve(entityKey, fieldName, fieldArgs);
-    // if (hasCurrentPage) {
-    //   return result;
-    // } else if (!(info as any).store.schema) {
-    //   return undefined;
-    // } else {
-    //   info.partial = true;
-    //   return result;
-    // }
+    return {
+      __typename: "PaginatedPosts",
+      hasMore,
+      posts: results}
+    
   };
 };
 
@@ -100,13 +57,21 @@ export const cursorPagination =(): Resolver => {
 export const createUrqlClient = (ssrExchange: any) =>({
     url: 'http://localhost:4000/graphql',
     exchanges: [dedupExchange, cacheExchange({
+      keys: {
+          PaginatedPosts: ()=>null, 
+      },
       resolvers:{
         Query: { //for client side rendering. will run whenever query is run and then can alter results
-          posts: cursorPagination(), //posts should match whats in Posts.graphql file 
+          // posts: cursorPagination(), //posts should match whats in Posts.graphql file 
         }
       },
       updates: {
         Mutation: {
+          createPost: (_result, args, cache, info) => {
+            cache.invalidate("Query", 'posts', { //invalidate the query then fetch it again
+              limit: 15,
+            })
+          },
   
           logout: (_result, args, cache, info)=>{
             //clear cache so that page gets refreshed without user info there
