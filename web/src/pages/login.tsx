@@ -53,8 +53,9 @@ export const Login: React.FC<{}> = ({}) => {
                         </Box>
                         <Flex mt={2}>
                         <NextLink href="/forgot-password">
-                            <Link ml="auto"> forgot password</Link>
+                            <Link  ml="auto"> forgot password</Link>
                         </NextLink>
+                       
                         </Flex>
                         
                         

@@ -37,6 +37,7 @@ export const cursorPagination =(): Resolver => {
     let hasMore = true;
     fieldInfos.forEach((fi) => {
       const key = cache.resolve(entityKey, fi.fieldKey) as string 
+      console.log("entity is: ", entityKey)
       const data = cache.resolve(key, "posts") as string[];
       const _hasMore = cache.resolve(key, "hasMore")
       if (!_hasMore){
@@ -56,24 +57,34 @@ export const cursorPagination =(): Resolver => {
 
 export const createUrqlClient = (ssrExchange: any) =>({
     url: 'http://localhost:4000/graphql',
-    exchanges: [dedupExchange, cacheExchange({
+    exchanges: [cacheExchange({
       keys: {
           PaginatedPosts: ()=>null, 
       },
       resolvers:{
         Query: { //for client side rendering. will run whenever query is run and then can alter results
-          // posts: cursorPagination(), //posts should match whats in Posts.graphql file 
+          posts: cursorPagination(), //posts should match whats in Posts.graphql file 
         }
       },
       updates: {
         Mutation: {
           createPost: (_result, args, cache, info) => {
-            cache.invalidate("Query", 'posts', { //invalidate the query then fetch it again
-              limit: 15,
+            console.log("start")
+            console.log(cache.inspectFields("Query"))
+            const allFields = cache.inspectFields("Query")
+            const fieldInfos = allFields.filter(
+              (info) =>info.fieldName === "posts"
+            )
+            fieldInfos.forEach((fi) => {
+              cache.invalidate("Query", "posts", fi.arguments || {})
             })
+            
+            console.log(cache.inspectFields("Query"))
+            console.log("end")
           },
   
           logout: (_result, args, cache, info)=>{
+            console.log("logout")
             //clear cache so that page gets refreshed without user info there
             betterUpdateQuery<LoginMutation, MeQuery>(
               cache,
@@ -83,6 +94,7 @@ export const createUrqlClient = (ssrExchange: any) =>({
             )
           }, 
           login: (_result, args, cache, info) => {
+            console.log("login")
             
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,

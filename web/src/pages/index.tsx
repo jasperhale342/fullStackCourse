@@ -4,15 +4,22 @@ import { NavBar } from "../components/NavBar"
 import { usePostsQuery } from "../generated/graphql"
 import { Layout } from "../components/Layout"
 import NextLink from "next/link"
-import {Box, Button, Flex, Heading, Link, Stack, Text} from "@chakra-ui/react"
-import { useState } from "react"
+import {Box, Button, Flex, Heading, Icon, Link, Stack, Text} from "@chakra-ui/react"
+import { useEffect, useState } from "react"
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons"
+import { UpvoteSection } from "../components/UpvoteSection"
 
 const Index = () => {
+    const[mounted, setMounted] = useState(false)
     const [variables, setVariables] = useState({limit:10, cursor: null as null | string})
     const [{data, fetching}] = usePostsQuery({
         variables,
     });
+    useEffect(() => setMounted(true), []);
+    if (!mounted) return null;
+
     console.log(variables)
+
 
     if (!fetching && !data){
         return <div> failed to get stuff </div>
@@ -23,7 +30,7 @@ const Index = () => {
             <Flex align="center">
                 <Heading>LiReddit</Heading>
             <NextLink href="/create-post">
-                    <Link ml="auto">
+                    <Link  ml="auto">
                     create post
                     </Link>
                 </NextLink>
@@ -34,11 +41,14 @@ const Index = () => {
             ): (<Stack spacing={8}>
                 {
                     data!.posts.posts.map((p)=> (
-                    <Box key={p.id} p={5} shadow='md' borderWidth='1px' >
+                    <Flex key={p.id} p={5} shadow='md' borderWidth='1px' >
+                        <UpvoteSection post={p}></UpvoteSection>
+                        <Box>
                         <Heading fontSize='xl'>{p.title}</Heading> 
                         <Text>posted by {p.creator.username}</Text>
                         <Text mt={4}>{p.textSnippet}</Text> 
-                    </Box>
+                        </Box>
+                    </Flex>
                     )
                 )}
             </Stack>) }

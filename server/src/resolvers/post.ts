@@ -3,8 +3,6 @@ import { Post } from "../entities/Post";
 import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, ObjectType, Query, Resolver, Root, UseMiddleware } from "type-graphql";
 import { isAuth } from "../middleware/isAuth";
 import { dataSource } from "../index";
-import { info } from "console";
-import { Upvote } from "../entities/Upvote";
 
 @InputType()
 class PostInput {
