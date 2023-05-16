@@ -92,16 +92,5 @@ main().catch((err) => {
     console.error(err)
 });
 
-// async function bootstrap(app:any, redis:any) { // should probably make types
-//   const apolloServer = new ApolloServer({
-//     schema: await buildSchema({
-//       resolvers: [HelloResolver, PostResolver, UserResolver],
-//       validate: false
-//     }),
-//     context: ({ req, res }) => ({ req, res, redis }) //special object that is accessable by all resolvers, can also access response and request
-//   });
-
-// apolloServer.applyMiddleware({app, cors: false });
-// }
 
 

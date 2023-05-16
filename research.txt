@@ -1,3 +1,10 @@
 toErrorMap
 useState
-withUrqlClient(createUrqlClient)
+update withUrqlClient(createUrqlClient) so that cache is acutally being invalidated
+figure out why token is not being passed for VoteStatus
+client side rendering vs server side
+
+client side
+    browser -> graphql 
+server side
+    browser -> next.js -> graphql 

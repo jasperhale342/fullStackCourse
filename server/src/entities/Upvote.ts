@@ -28,7 +28,10 @@ export class Upvote extends BaseEntity{
     user: User;
   
     
-    @ManyToOne(()=>Post, (post)=>post.upvotes) //setup forgien key in Users table
+    @ManyToOne(()=>Post, (post)=>post.upvotes, {//setup forgien key in Users table
+    
+        onDelete: "CASCADE"
+    })
     post: Post;
 
 }
