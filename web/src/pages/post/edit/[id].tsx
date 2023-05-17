@@ -1,15 +1,12 @@
-import { withUrqlClient } from 'next-urql'
-import React from 'react'
-import { createUrqlClient } from '../../../../utils/createUrqlClient'
 import { Box, Button } from '@chakra-ui/react'
-import { Formik, Form } from 'formik'
-import router, { useRouter } from 'next/router'
+import { Form, Formik } from 'formik'
+import { withUrqlClient } from 'next-urql'
+import { useRouter } from 'next/router'
+import { createUrqlClient } from '../../../../utils/createUrqlClient'
+import { useGetIntId } from '../../../../utils/useGetIntId'
 import { InputField } from '../../../components/InputField'
 import { Layout } from '../../../components/Layout'
-import createPost from '../../create-post'
-import { useGetPostFromUrl } from '../../../../utils/useGetPostFromUrl'
 import { usePostQuery, useUpdatePostMutation } from '../../../generated/graphql'
-import { useGetIntId } from '../../../../utils/useGetIntId'
 
 
 
@@ -41,12 +38,8 @@ export const EditPost = ({}) => {
         <Formik 
         initialValues = {{title: data.post.title , text: data.post.text}}
         onSubmit={async (values) => {
-            // const {error} = await createPost({input:values})
-            // if(!error){
-            //     router.push("/")
-            // } 
             await updatePost({id: intId, ...values})
-            router.push('/')
+            router.back()
         }}
         >
             {({isSubmitting})=>(

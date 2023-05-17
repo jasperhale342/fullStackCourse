@@ -14,6 +14,7 @@ import { User } from "./entities/User";
 import { Post } from "./entities/Post";
 import path from "path";
 import { Upvote } from "./entities/Upvote";
+import { createUserLoader } from "./utils/createUserLoader";
 
 
 
@@ -71,8 +72,15 @@ export const dataSource =  new DataSource({
           resolvers: [HelloResolver, PostResolver, UserResolver],
           validate: false
         }),
-        context: ({ req, res }) => ({ req, res, redis }) //special object that is accessable by all resolvers, can also access response and request
-      });
+        context: ({ req, res }) => ({ 
+          req, 
+          res, 
+          redis, 
+          userLoader: createUserLoader(),
+          upvoteLoader: createUserLoader()
+          
+        }) //special object that is accessable by all resolvers, can also access response and request
+      }); //bacthes and caches loading of users within a single request
 
     apolloServer.applyMiddleware({app, cors: false });
 

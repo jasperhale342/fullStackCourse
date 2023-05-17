@@ -8,3 +8,5 @@ client side
     browser -> graphql 
 server side
     browser -> next.js -> graphql 
+
+dataLoader and its use cases

@@ -4,7 +4,7 @@ import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, ObjectType, Q
 import { isAuth } from "../middleware/isAuth";
 import { dataSource } from "../index";
 import { Upvote } from "../entities/Upvote";
-import { text } from "express";
+import { User } from "../entities/User";
 
 
 @InputType()
@@ -30,8 +30,29 @@ export class PostResolver {
 
     @FieldResolver(() => String)
     textSnippet(
-        @Root() root: Post){ 
-        return root.text.slice(0, 50)
+        @Root() post: Post){ 
+        return post.text.slice(0, 50)
+    }
+
+    @FieldResolver(() => User)
+    creator(@Root() post: Post,
+    @Ctx() {userLoader}: MyContext){ 
+       return userLoader.load(post.creatorId)
+    }
+
+    @FieldResolver(()=> Int, {nullable:true})
+    async voteStatus(
+        @Root() post: Post,
+        @Ctx() {upvoteLoader, req}: MyContext){
+           if (!req.session.userId) {
+            return null
+           }
+        console.log("########################################################## here")
+        const key = {postId: post.id,
+            userId: req.session.userId} 
+        const upvote  = await upvoteLoader.load(key)
+        console.log("after")
+        return upvote ? upvote.value : null
     }
 
     @Mutation(() => Boolean)
@@ -93,38 +114,27 @@ export class PostResolver {
         
 
         const replacements: any[] = [realLimitPlusOne];
-
-        console.log("################################## : req.session ", req.session)
-
-        if(req.session.userId) {
-            replacements.push(req.session.userId)
-        }
-
-        let cursorIndx = 3
+    
         if (cursor){
             replacements.push(new Date (parseInt(cursor)))
-            cursorIndx = replacements.length
+
         }
         //can change shape of object returned by using json_build_object
         const posts = await dataSource.query(`
-        select p.*,  
-        json_build_object(
-            'id', u.id,
-            'username', u.username,
-            'email', u.email
-          
-            ) creator,
-        ${ 
-            req.session.userId 
-            ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"' 
-            : 'null as "voteStatus"'
-        }
+        select p.*  
+      
+       
         from post p
-        inner join public.user u on u.id = p."creatorId"
-        ${cursor ?  `where p."createdAt" < $${cursorIndx}` : ""}
+        ${cursor ?  `where p."createdAt" < $2` : ""}
         order by p."createdAt" DESC
         limit $1
         `, replacements)
+
+        // ${ 
+        //     req.session.userId 
+        //     ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"' 
+        //     : 'null as "voteStatus"'
+        // }
 
         // const qb =  dataSource
         //     .getRepository(Post)
