@@ -4,3 +4,4 @@ web/node_modules/
 /node_modules
 server/dist/
 src/migrations/
+srv/.env

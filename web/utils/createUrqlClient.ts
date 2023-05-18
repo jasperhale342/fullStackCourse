@@ -1,10 +1,9 @@
-import { Exchange, fetchExchange, gql, stringifyVariables } from "urql"
-import { LoginMutation, MeQuery, MeDocument, RegisterMutation, VoteMutationVariables, DeletePostMutationVariables } from "../src/generated/graphql"
-import { betterUpdateQuery } from "./betterUpdateQuery"
-import {Resolver, cacheExchange} from "@urql/exchange-graphcache"
-import { pipe, tap } from "wonka"
+import { Cache, Resolver, cacheExchange } from "@urql/exchange-graphcache"
 import router from "next/router"
-import { FieldsOnCorrectTypeRule } from "graphql"
+import { Exchange, fetchExchange, gql, stringifyVariables } from "urql"
+import { pipe, tap } from "wonka"
+import { DeletePostMutationVariables, LoginMutation, MeDocument, MeQuery, RegisterMutation, VoteMutationVariables } from "../src/generated/graphql"
+import { betterUpdateQuery } from "./betterUpdateQuery"
 import { isServer } from "./isServer"
 
 const errorExchange: Exchange = ({forward}) => ops$ =>{
@@ -54,7 +53,15 @@ export const cursorPagination =(): Resolver => {
     
   };
 };
-
+function invalidateAllPosts(cache: Cache) {
+  const allFields = cache.inspectFields("Query")
+            const fieldInfos = allFields.filter(
+              (info) =>info.fieldName === "posts"
+            )
+            fieldInfos.forEach((fi) => {
+              cache.invalidate("Query", "posts", fi.arguments || {})
+            })
+}
 
 export const createUrqlClient = (ssrExchange: any, ctx: any) => { 
   let cookie = ''
@@ -118,18 +125,8 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
          }
         },
           createPost: (_result, args, cache, info) => {
-            console.log("start")
-            console.log(cache.inspectFields("Query"))
-            const allFields = cache.inspectFields("Query")
-            const fieldInfos = allFields.filter(
-              (info) =>info.fieldName === "posts"
-            )
-            fieldInfos.forEach((fi) => {
-              cache.invalidate("Query", "posts", fi.arguments || {})
-            })
+            invalidateAllPosts(cache)
             
-            console.log(cache.inspectFields("Query"))
-            console.log("end")
           },
   
           logout: (_result, args, cache, info)=>{
@@ -159,6 +156,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                   }
                 }
               )
+              invalidateAllPosts(cache)
             
           },
           // for updating the cache. rn for only the MeQuery

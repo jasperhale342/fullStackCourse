@@ -24,9 +24,9 @@ import { createUserLoader } from "./utils/createUserLoader";
 
 export const dataSource =  new DataSource({
     type:'postgres',
-    database: 'lireddit2',
+    url:  process.env.DATABASE_URL,
     logging: true,
-    synchronize: true, // create tables automatically, dont need to run migrations 
+    // synchronize: true, // create tables automatically, dont need to run migrations 
     entities: [Post, User, Upvote],
     migrations: [path.join(__dirname, "./migrations/*")]
   })
@@ -40,10 +40,10 @@ export const dataSource =  new DataSource({
 
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies
-  const redis = new Redis();
+  const redis = new Redis({path: process.env.REDIS_URL});
   const app = express();
   app.use(cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN,
     credentials: true
   }))
   
@@ -53,7 +53,7 @@ export const dataSource =  new DataSource({
     session({
       name: COOKIE_NAME,
       saveUninitialized: false,
-      secret: 'kljhsafdlkashdkfdfgh',
+      secret: process.env.SESSION_SECRET,
       resave: false,
       store: new RedisStore({
         client: redis as any,
@@ -90,7 +90,7 @@ export const dataSource =  new DataSource({
     });
 
 
-    app.listen(4000, () =>{
+    app.listen((process.env.PORT), () =>{
         console.log("server started on localhost:4000")
     });
 

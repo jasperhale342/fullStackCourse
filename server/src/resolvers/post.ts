@@ -40,20 +40,25 @@ export class PostResolver {
        return userLoader.load(post.creatorId)
     }
 
-    @FieldResolver(()=> Int, {nullable:true})
-    async voteStatus(
-        @Root() post: Post,
-        @Ctx() {upvoteLoader, req}: MyContext){
-           if (!req.session.userId) {
-            return null
-           }
-        console.log("########################################################## here")
-        const key = {postId: post.id,
-            userId: req.session.userId} 
-        const upvote  = await upvoteLoader.load(key)
-        console.log("after")
-        return upvote ? upvote.value : null
-    }
+    // @FieldResolver(()=> Int, {nullable:true})
+    // async voteStatus(
+    //     @Root() post: Post,
+    //     @Ctx() {upvoteLoader, req}: MyContext){
+    //        if (!req.session.userId) {
+    //         return null
+    //        }
+    //     const key = {
+    //         postId: post.id,
+    //         userId: req.session.userId
+    //     } 
+    //     const upvote  = await upvoteLoader.load(key)
+
+    //     console.log("upvote data: ", upvote)
+    //     return null
+    //     // const upvote  = await upvoteLoader.loadMany(key)
+    //     // console.log("after")
+    //     // return upvote ? upvote.value : null
+    // }
 
     @Mutation(() => Boolean)
     @UseMiddleware(isAuth)
@@ -105,8 +110,7 @@ export class PostResolver {
         @Arg('limit', ()=>Int) limit:number,
         @Arg('cursor', ()=> String, {nullable: true}) cursor: string | null, //curser based pagination 
         //  how many do we want after a certain position 
-        @Ctx() {req }: MyContext
-        
+        @Ctx() {req}: MyContext
     ): Promise<PaginatedPosts>{
         const realLimit = Math.min(50, limit)
         const realLimitPlusOne = realLimit +1
@@ -114,18 +118,28 @@ export class PostResolver {
         
 
         const replacements: any[] = [realLimitPlusOne];
+        if (req.session.userId){
+            replacements.push(req.session.userId)
+        }
     
+        let cursorIdx = 3
         if (cursor){
             replacements.push(new Date (parseInt(cursor)))
+            cursorIdx = replacements.length
 
         }
         //can change shape of object returned by using json_build_object
         const posts = await dataSource.query(`
-        select p.*  
-      
+        select p.*,  
+        
+        ${
+            req.session.userId
+            ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"'
+            : 'null as "voteStatus"'
+        }
        
         from post p
-        ${cursor ?  `where p."createdAt" < $2` : ""}
+        ${cursor ?  `where p."createdAt" < $${cursorIdx}` : ""}
         order by p."createdAt" DESC
         limit $1
         `, replacements)
