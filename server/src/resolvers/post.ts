@@ -2,7 +2,7 @@ import { MyContext } from "src/types";
 import { Post } from "../entities/Post";
 import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, ObjectType, Query, Resolver, Root, UseMiddleware } from "type-graphql";
 import { isAuth } from "../middleware/isAuth";
-import { dataSource } from "../index";
+import { dataSource } from "../datasource";
 import { Upvote } from "../entities/Upvote";
 import { User } from "../entities/User";
 

@@ -1,42 +1,25 @@
-import "reflect-metadata"
-import { COOKIE_NAME, __prod__ } from "./constant";
+import { ApolloServer } from 'apollo-server-express';
+import connectRedis from 'connect-redis';
+import cors from 'cors';
 import express from 'express';
-import {ApolloServer} from 'apollo-server-express';
+import Redis from 'ioredis';
+import "reflect-metadata";
 import { buildSchema } from "type-graphql";
+import { COOKIE_NAME, __prod__ } from "./constant";
+
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import Redis from 'ioredis';
-import connectRedis from 'connect-redis';
-import { DataSource,  } from "typeorm";
-import cors from 'cors'
-import { User } from "./entities/User";
-import { Post } from "./entities/Post";
-import path from "path";
-import { Upvote } from "./entities/Upvote";
 import { createUserLoader } from "./utils/createUserLoader";
+import { dataSource } from './datasource';
 
 
 
-
-
-
-
-export const dataSource =  new DataSource({
-    type:'postgres',
-    url:  process.env.DATABASE_URL,
-    logging: true,
-    // synchronize: true, // create tables automatically, dont need to run migrations 
-    entities: [Post, User, Upvote],
-    migrations: [path.join(__dirname, "./migrations/*")]
-  })
 
 
  const main  = async () =>{
   await dataSource.initialize();
-  // await Post.delete({})
-  // await dataSource.runMigrations();
-
+  await dataSource.runMigrations()
 
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies
@@ -63,7 +46,8 @@ export const dataSource =  new DataSource({
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
         httpOnly: true,
         sameSite: 'lax',
-        secure: false, //cookie only works in https
+        secure: __prod__, //cookie only works in https,
+        domain: __prod__ ? ".jasperware.co" : undefined
       },
     }));
 

@@ -2,6 +2,6 @@
     "type": "postgres",
     "host": "localhost",
     "database": "lireddit3",
-    "entities": ["dist/entities/*.js"],
-    "migrations": ["dist/migrations/*.js"]
+    "entities": ["./dist/entities/*.js"],
+    "migrations": ["./dist/migrations/*.js"]
 }

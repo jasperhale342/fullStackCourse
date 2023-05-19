@@ -7,7 +7,7 @@ import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
 import { sendEmail } from "../utils/sendEmail";
 import {v4} from 'uuid';
-import {dataSource} from "../index"
+import {dataSource} from "../datasource"
 
 @ObjectType()
 class FieldError{
