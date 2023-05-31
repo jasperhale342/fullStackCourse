@@ -1,0 +1,47 @@
+version: '3'
+services:
+  api:
+      build: .
+      container_name: api
+      volumes:
+        - .:/usr/src/app
+        - /usr/src/app/node_modules/
+      depends_on:
+        - redis
+        - db
+      # links:
+      #   - redis
+      #   - db
+      ports:
+        - 4000:4000
+      environment:
+      #   - REDIS_URL=redis://cache
+      #   - NODE_ENV=development
+      #   - PORT=4000
+        # - DATABASE_USERNAME=root
+        # - DATABASE_PASSWORD=root
+        - DATABASE_URL=postgresql://root:root@db:5432/lireddit3
+  redis:
+    container_name: redis
+    image: redis:latest
+    hostname: redis
+    expose:
+      - 6379
+    command: redis-server
+
+  db:
+    container_name: db
+    hostname: postgres
+    image: postgres:latest
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: "lireddit3"
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "root"
+    volumes: 
+       - db:/data/postgres
+volumes:
+  db:
+    driver: local

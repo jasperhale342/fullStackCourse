@@ -23,7 +23,12 @@ import { dataSource } from './datasource';
 
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies
-  const redis = new Redis({path: process.env.REDIS_URL});
+  const redis = new Redis({ path: process.env.REDIS_URL
+  });
+
+  // const redis = new Redis({
+  //   path: 'redis://:6379'
+  // })
   const app = express();
   app.use(cors({
     origin: process.env.CORS_ORIGIN,
