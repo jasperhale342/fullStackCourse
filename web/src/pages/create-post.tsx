@@ -1,26 +1,30 @@
-import React, { useEffect } from 'react';
-import {Form, Formik} from 'formik'
-import { InputField } from '../components/InputField';
-import { Box } from '@chakra-ui/layout';
 import { Button } from '@chakra-ui/button';
-import { useCreatePostMutation, useMeQuery } from '../generated/graphql';
+import { Box } from '@chakra-ui/layout';
+import { Form, Formik } from 'formik';
+import { withApollo } from '../../utils/withApollo';
 import { useRouter } from 'next/router';
-import { withUrqlClient } from 'next-urql';
-import { createUrqlClient } from '../../utils/createUrqlClient';
-import { Layout } from '../components/Layout';
+import React from 'react';
 import { useIsAuth } from '../../utils/useIsAuth';
+import { InputField } from '../components/InputField';
+import { Layout } from '../components/Layout';
+import { useCreatePostMutation } from '../generated/graphql';
 
  const CreatePost: React.FC<{}> = ({}) => {
     const router = useRouter()
     useIsAuth()
-    const [, createPost] = useCreatePostMutation()
+    const [createPost] = useCreatePostMutation()
     return (
        <Layout variant='small'>
         <Formik 
         initialValues = {{title: "", text: ""}}
         onSubmit={async (values) => {
-            const {error} = await createPost({input:values})
-            if(!error){
+            const {errors} = await createPost({ variables: {input:values},
+            update: (cache) => {
+                cache.evict({fieldName: 'posts:{}'})
+            }
+            
+            })
+            if(!errors){
                 router.push("/")
             } 
         }}
@@ -37,7 +41,7 @@ import { useIsAuth } from '../../utils/useIsAuth';
                     textarea
                     name="text"
                     placeholder="text..."
-                    label="Body"
+                    label="body"
                 
                 />
                 </Box>
@@ -58,4 +62,4 @@ import { useIsAuth } from '../../utils/useIsAuth';
     )
 }
 
-export default withUrqlClient(createUrqlClient)(CreatePost);
+export default withApollo({ssr: false})(CreatePost)

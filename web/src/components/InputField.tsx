@@ -1,7 +1,6 @@
 import { FormControl, FormErrorMessage, FormLabel} from '@chakra-ui/form-control';
 import { Input } from '@chakra-ui/input';
 import { Textarea } from '@chakra-ui/react';
-import { StringOrNumber } from '@chakra-ui/utils';
 import { useField } from 'formik';
 import React, { InputHTMLAttributes } from 'react'
 

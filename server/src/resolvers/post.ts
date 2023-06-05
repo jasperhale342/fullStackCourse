@@ -71,7 +71,6 @@ export class PostResolver {
         const isUpvote = value !== -1
         const realValue = isUpvote ? 1 : -1
         const {userId} = req.session
-        console.log("user id is post resolver: ", userId)
         const upvote = await Upvote.findOne({where: {postId, userId}})
         //user has voted onm the post before and they are changing they're vote
         if (upvote && upvote.value !== realValue){ 
@@ -187,7 +186,6 @@ export class PostResolver {
         @Arg("input") input: PostInput,
         @Ctx() {req}: MyContext
     ): Promise<Post>{
-        console.log("session id: ", req.session)
         return Post.create({
             ...input,
             creatorId: req.session.userId

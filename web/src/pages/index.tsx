@@ -1,35 +1,42 @@
 import { Box, Button, Flex, Heading, Link, Stack, Text } from "@chakra-ui/react"
-import { withUrqlClient } from "next-urql"
+import { withApollo } from '../../utils/withApollo';
 import NextLink from "next/link"
 import { useEffect, useState } from "react"
-import { createUrqlClient } from "../../utils/createUrqlClient"
 import { EditDeletePostButtons } from "../components/EditDeletePostButtons"
 import { Layout } from "../components/Layout"
 import { UpvoteSection } from "../components/UpvoteSection"
-import { useDeletePostMutation, useMeQuery, usePostsQuery } from "../generated/graphql"
+import { usePostsQuery } from "../generated/graphql"
 
 const Index = () => {
     const[mounted, setMounted] = useState(false)
-    const [variables, setVariables] = useState({limit:10, cursor: null as null | string})
-    const [{data, fetching}] = usePostsQuery({
-        variables,
+    const {data, loading, error, fetchMore, variables} = usePostsQuery({
+        variables: {
+            limit:10, 
+            cursor: null
+
+        }, notifyOnNetworkStatusChange: true
     });
-    
-    const [, deletePost] = useDeletePostMutation()
+
     useEffect(() => setMounted(true), []);
     if (!mounted) return null;
 
-    console.log(variables)
 
 
-    if (!fetching && !data){
-        return <div> failed to get stuff </div>
+
+    if (!loading && !data){
+        return (
+        <div> failed to get stuff 
+            <div>{error?.toString()}</div>
+
+        </div>
+  
+        )
     }
 
     return (
         <Layout>
             
-            {fetching && !data ? (
+            {loading && !data ? (
                 <div> loading ...</div>
             ): (<Stack spacing={8}>
                 {
@@ -57,14 +64,37 @@ const Index = () => {
                 )}
             </Stack>) }
             { data && data.posts.hasMore?<Flex>
-            <Button onClick={()=>{setVariables({
-                limit:variables.limit,
-                cursor: data.posts.posts[data.posts.posts.length-1].createdAt,
-            })}} my={8} isLoading={fetching}> load more</Button>
+            <Button 
+                onClick={()=>{
+                    fetchMore({
+                        variables: {
+                            limit:variables?.limit,
+                            cursor: data.posts.posts[data.posts.posts.length-1].createdAt,
+                        },
+//                         updateQuery: (previousValue, {fetchMoreResult}): PostsQuery => {
+//                             if( !fetchMore){
+//                                 return previousValue as PostsQuery
+//                             }
+//                             return {
+// __typename: 'Query',
+// posts: {
+//     __typename: 'PaginatedPosts',
+//     hasMore: (fetchMoreResult as PostsQuery).posts.hasMore,
+//     posts: [
+//         ...(previousValue as PostsQuery).posts.posts,
+//         ...(fetchMoreResult as PostsQuery).posts.posts
+//     ]
+// }
+//                             }
+//                         }
+                    },
+                    
+                    )
+                    }} my={8} isLoading={loading}> load more</Button>
             </Flex>: null}
         </Layout>
     )
     
 }
 
-export default withUrqlClient(createUrqlClient, {ssr:true}) (Index)
+export default withApollo({ssr: true})(Index)

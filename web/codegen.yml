@@ -1,10 +1,10 @@
 overwrite: true
 verbose: true
-schema: "http://localhost:4000/graphql"
+schema: "http://localhost:4001/graphql"
 documents: "src/graphql/**/*.graphql"
 generates:
   src/generated/graphql.tsx:
     plugins:
       - "typescript"
       - "typescript-operations"
-      - "typescript-urql"
+      - "typescript-react-apollo"

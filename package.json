@@ -1,5 +1,0 @@
-{
-  "devDependencies": {
-    "@graphql-codegen/cli": "^2.4.0"
-  }
-}

@@ -107,7 +107,6 @@ export class UserResolver {
             user.id, 
             'EX',
              1000*60*60*24*3)
-        console.log("about to send email")
         await sendEmail(email, `<a href="http://localhost:3000/change-password/${token}"> reset password</a>`);
         return true
     }
@@ -153,7 +152,7 @@ export class UserResolver {
                     }]
                 }
             }
-            console.log("message", err.message)
+
         }
     
         req.session.userId = user.id;
@@ -201,7 +200,6 @@ export class UserResolver {
          req.session.destroy((err)=> {
             res.clearCookie(COOKIE_NAME)  
             if (err) {
-                console.log(err);
                 resolve(false)
                 return;
             }

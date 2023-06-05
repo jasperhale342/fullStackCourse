@@ -12,23 +12,16 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import { createUserLoader } from "./utils/createUserLoader";
 import { dataSource } from './datasource';
-
-
-
-
+require('dotenv').config()
 
  const main  = async () =>{
+  
   await dataSource.initialize();
-  await dataSource.runMigrations()
+  // await dataSource.runMigrations()
 
   const session = require('express-session');
   const RedisStore = connectRedis(session); //for storing cookies
-  const redis = new Redis({ path: process.env.REDIS_URL
-  });
-
-  // const redis = new Redis({
-  //   path: 'redis://:6379'
-  // })
+  const redis = new Redis(process.env.REDIS_URL as string);
   const app = express();
   app.use(cors({
     origin: process.env.CORS_ORIGIN,

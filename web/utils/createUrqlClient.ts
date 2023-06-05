@@ -5,6 +5,7 @@ import { pipe, tap } from "wonka"
 import { DeletePostMutationVariables, LoginMutation, MeDocument, MeQuery, RegisterMutation, VoteMutationVariables } from "../src/generated/graphql"
 import { betterUpdateQuery } from "./betterUpdateQuery"
 import { isServer } from "./isServer"
+require('dotenv').config()
 
 const errorExchange: Exchange = ({forward}) => ops$ =>{
   return pipe(
@@ -21,7 +22,6 @@ export const cursorPagination =(): Resolver => {
   return (_parent, fieldArgs, cache, info) => {
     const { parentKey: entityKey, fieldName } = info;
     const allFields = cache.inspectFields(entityKey); //get all queries in cache
-    console.log("all fields ",allFields)
     const fieldInfos = allFields.filter(info => info.fieldName === fieldName); //could have a bunch of queries so just get the ones we care about
     const size = fieldInfos.length;
     if (size === 0) {
@@ -37,7 +37,6 @@ export const cursorPagination =(): Resolver => {
     let hasMore = true;
     fieldInfos.forEach((fi) => {
       const key = cache.resolve(entityKey, fi.fieldKey) as string 
-      console.log("entity is: ", entityKey)
       const data = cache.resolve(key, "posts") as string[];
       const _hasMore = cache.resolve(key, "hasMore")
       if (!_hasMore){
@@ -45,7 +44,6 @@ export const cursorPagination =(): Resolver => {
       }
       results.push(...data)
     })
-    console.log("result is ", results)
     return {
       __typename: "PaginatedPosts",
       hasMore,
@@ -65,7 +63,6 @@ function invalidateAllPosts(cache: Cache) {
 
 export const createUrqlClient = (ssrExchange: any, ctx: any) => { 
   let cookie = ''
-  console.log(ctx)
   if (isServer()){
     cookie = ctx?.req?.headers?.cookie
   }
@@ -77,7 +74,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
       }: undefined
     },
   
-    url: 'http://localhost:4000/graphql',
+    url: process.env.NEXT_PUBLIC_API_URL as string,
     exchanges: [cacheExchange({
       keys: {
           PaginatedPosts: ()=>null, 
@@ -130,7 +127,6 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
           },
   
           logout: (_result, args, cache, info)=>{
-            console.log("logout")
             //clear cache so that page gets refreshed without user info there
             betterUpdateQuery<LoginMutation, MeQuery>(
               cache,
@@ -140,7 +136,6 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
             )
           }, 
           login: (_result, args, cache, info) => {
-            console.log("login")
             
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,

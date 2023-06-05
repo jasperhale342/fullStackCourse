@@ -1,8 +1,7 @@
 import { Box, Button } from '@chakra-ui/react'
 import { Form, Formik } from 'formik'
-import { withUrqlClient } from 'next-urql'
+import { withApollo } from '../../../../utils/withApollo';
 import { useRouter } from 'next/router'
-import { createUrqlClient } from '../../../../utils/createUrqlClient'
 import { useGetIntId } from '../../../../utils/useGetIntId'
 import { InputField } from '../../../components/InputField'
 import { Layout } from '../../../components/Layout'
@@ -13,14 +12,14 @@ import { usePostQuery, useUpdatePostMutation } from '../../../generated/graphql'
 export const EditPost = ({}) => {
     const router = useRouter()
     const intId = useGetIntId()
-    const [{data, fetching}] = usePostQuery({
-        pause: intId === -1,
+    const {data, loading} = usePostQuery({
+        skip: intId === -1,
         variables: {
             id: intId
         }
     })
-    const [ , updatePost] = useUpdatePostMutation()
-    if (fetching) {
+    const [ updatePost] = useUpdatePostMutation()
+    if (loading) {
         return (
             <Layout>
                 <div>loading...</div>
@@ -38,7 +37,7 @@ export const EditPost = ({}) => {
         <Formik 
         initialValues = {{title: data.post.title , text: data.post.text}}
         onSubmit={async (values) => {
-            await updatePost({id: intId, ...values})
+            await updatePost({variables: {id: intId, ...values}})
             router.back()
         }}
         >
@@ -74,4 +73,4 @@ export const EditPost = ({}) => {
         </Layout>);
 }
 
-export default withUrqlClient(createUrqlClient)(EditPost)
+export default withApollo({ssr: false})(EditPost)
