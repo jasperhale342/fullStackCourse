@@ -2,6 +2,8 @@ import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGenerat
 import { Field, Int, ObjectType } from "type-graphql";
 import { Post } from "./Post";
 import { Upvote } from "./Upvote";
+import { Subreddit } from "./Subreddit";
+import { User_Subreddit } from "./User_Subreddit";
 
 @ObjectType()
 @Entity()
@@ -35,5 +37,8 @@ export class User extends BaseEntity{
 
   @OneToMany(() => Upvote, upvote =>upvote.user)
   upvotes: Upvote[]
+
+  @OneToMany(() => User_Subreddit, subreddit =>subreddit.user)
+  subreddits: Subreddit[]
 
 }
