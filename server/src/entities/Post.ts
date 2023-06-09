@@ -39,20 +39,14 @@ export class Post extends BaseEntity{
   @Column()
   creatorId: number
 
-  // @Field(()=>User)
-  // @ManyToOne(()=>User, user=>user.posts) //setup forgien key in Users table
-  // creator: User;
-
-  @Field()
-  @ManyToOne(()=> (User || Subreddit), {
-    createForeignKeyConstraints: false,
-  }) //setup forgien key in Users table
-  creator: number;
+  @Field(()=>User)
+  @ManyToOne(()=>User, user=>user.posts) 
+  creator: User;
 
 
-  // @Field(()=>Subreddit)
-  // @ManyToOne(()=>Subreddit, subreddit=>subreddit.posts) //setup forgien key in Users table
-  // creator: User;
+  @Field(()=>Subreddit)
+  @ManyToOne(()=>Subreddit, subreddit=>subreddit.posts) 
+  subreddit: Subreddit;
   
   @OneToMany(() => Upvote, upvote =>upvote.user)
   upvotes: Upvote[]

@@ -29,7 +29,7 @@ export class Subreddit extends BaseEntity{
   @Column()
   rules!: string;
 
-  @OneToMany(() => Post, post =>post.creator)
+  @OneToMany(() => Post, post =>post.id)
   posts: Post[]
 
   @OneToMany(() => User_Subreddit, user =>user.user)
