@@ -1,4 +1,5 @@
 
+import { User_Subreddit } from "src/entities/User_Subreddit";
 import { dataSource } from "../datasource";
 import { Subreddit } from "../entities/Subreddit";
 import { isAuth } from "../middleware/isAuth";
@@ -102,12 +103,28 @@ export class SubredditResolver {
     }
 
     // update Subreddit
+    @Mutation(()=>SubredditResponse)
+    @UseMiddleware(isAuth)
+    async updateSubreddit(
+        @Arg("name")
+
+    )
+    
+
+
+    // delete Subreddit
     @Mutation(()=>Boolean)
     @UseMiddleware(isAuth)
     async deleteSubreddit (
         @Arg("name") name:string
+        @Ctx() {req}: MyContext
     ): Promise<boolean | SubredditResponse> {
         try {
+           const isUserModerator =  await dataSource.getRepository(User_Subreddit)
+           .createQueryBuilder('User_Subreddit')
+           .where("")
+           
+
             await Subreddit.delete({name:name})
         } catch (err) {
             return {errors: [{
@@ -118,9 +135,6 @@ export class SubredditResolver {
         
         return true
     }
-
-
-    // delete Subreddit
 
 
 
