@@ -22,7 +22,7 @@ export class Subreddit extends BaseEntity{
   updatedAt: Date ;
   
   @Field() 
-  @Column()
+  @Column({unique:true})
   name!: string;
 
   @Field()

@@ -92,7 +92,6 @@ export class UserResolver {
     }
 
     @Mutation(() => Boolean)
-    
     async forgotPassword(
         @Arg('email') email: string,
         @Ctx() { redis} : MyContext

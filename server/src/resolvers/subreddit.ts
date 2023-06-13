@@ -1,12 +1,22 @@
-import { dataSource } from "src/datasource";
-import { Subreddit } from "src/entities/Subreddit";
-import { isAuth } from "src/middleware/isAuth";
-import { MyContext } from "src/types";
-import { Arg, Ctx, Field, FieldResolver, Mutation, ObjectType, Query, Resolver, Root, UseMiddleware } from "type-graphql";
+
+import { dataSource } from "../datasource";
+import { Subreddit } from "../entities/Subreddit";
+import { isAuth } from "../middleware/isAuth";
+import { MyContext } from "../types";
+import { Arg, Ctx, Field, FieldResolver, Int, Mutation, ObjectType, Query, Resolver, Root, UseMiddleware } from "type-graphql";
 
 
 @ObjectType()
 class FieldError{
+    @Field()
+    field: string;
+
+    @Field()
+    message: string;
+}
+
+@ObjectType()
+class SuccessMessage{
     @Field()
     field: string;
 
@@ -20,8 +30,8 @@ class SubredditResponse {
     @Field(() => [FieldError], {nullable: true})
     errors?: FieldError[]
 
-    @Field(() => Subreddit, {nullable:true})
-    subreddit?: Subreddit
+    @Field(() => [SuccessMessage], {nullable:true})
+    success?: SuccessMessage[]
 }
 
 
@@ -29,27 +39,38 @@ class SubredditResponse {
 @Resolver(Subreddit)
 export class SubredditResolver {
 
-    @Mutation(()=> SubredditResponse)
+    @Query(()=>Subreddit, {nullable: true})
+    subreddit(
+        @Arg("id", ()=> Int) id:number
+    ):Promise<Subreddit | null> {
+        return Subreddit.findOne({where: {id:id}})
+    }
+
+    @Mutation(()=> Boolean)
     @UseMiddleware(isAuth)
     async createSubreddit(
         @Arg("name") name: string,
         @Arg("rules") rules: string,
         @Ctx() {req}: MyContext
-    ): Promise<Subreddit | SubredditResponse | null> {
-        if (name.length < 1 ){
-            return {errors: [
-                {
-                    field: "name",
-                    message: "name must be at least two characters long"
-                }
-            ]}
+    ): Promise<SubredditResponse | boolean> {
+        console.log("length of name is ", name.length)
+        if (name.length <= 2 ){
+            return {
+                errors: [
+                    {
+                        field: "name",
+                        message: "name must be at least two characters long"
+                    }
+            ]
+            }
         }
 
-        const subreddit = await Subreddit.findOne({where:{name:name}})
+        const subreddit_old = await Subreddit.findOne({where:{name:name}})
         const userId = req.session.userId
+        console.log("userid is ", userId)
 
         // the subreddit cant already exist
-        if (subreddit) {
+        if (subreddit_old) {
             return {errors: [
                 {
                     field: "name",
@@ -61,23 +82,38 @@ export class SubredditResolver {
         // the user that created the subreddit will default to being a mod
 
 
-        const newSub = await dataSource.createQueryBuilder()
-        .insert()
-        .into(Subreddit)
-        .values([{
-            name: name,
-            rules: rules
-        }]).returning("*")
-        .execute()
+        
 
-        await dataSource.transaction(async tm => {
-            await tm.query(`
-            insert into User_Subreddit ("isModerator", "userId", "subredditId")
-            values ($1, $2, $3)
-            `, [true, userId, newSub])
-        })
+        let newSub;
 
-        return newSub.raw[0]
+        try {
+            await dataSource.transaction(async tm => {
+                await tm.query(`
+                insert into subreddit ("name", "rules")
+                values ($1, $2)
+                `, [name, rules])
+                
+
+                await tm.query(`
+                insert into User_Subreddit ("userId", "subredditId")
+                values (${userId}, (select id from subreddit where name = '${name}')) 
+                `)
+            })
+            // console.log("new sub data", newSub?.raw)
+
+        } catch(err) {
+                console.log(err)
+    
+                return {
+                    errors: [{
+                        field: "NA",
+                        message: "Something went wrong"
+                    }]
+                }
+        }
+
+
+       return true
         
     }
 

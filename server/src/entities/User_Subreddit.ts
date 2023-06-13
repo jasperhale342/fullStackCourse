@@ -6,7 +6,7 @@ import { Subreddit } from "./Subreddit";
 export class User_Subreddit extends BaseEntity{
   
 
-    @Column({type: "bool"})
+    @Column({type: "bool", default:true})
     isModerator: boolean
  
    

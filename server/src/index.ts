@@ -6,12 +6,12 @@ import Redis from 'ioredis';
 import "reflect-metadata";
 import { buildSchema } from "type-graphql";
 import { COOKIE_NAME, __prod__ } from "./constant";
-
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import { createUserLoader } from "./utils/createUserLoader";
 import { dataSource } from './datasource';
+import { SubredditResolver } from './resolvers/subreddit';
 require('dotenv').config()
 
  const main  = async () =>{
@@ -51,7 +51,7 @@ require('dotenv').config()
 
       const apolloServer = new ApolloServer({
         schema: await buildSchema({
-          resolvers: [HelloResolver, PostResolver, UserResolver],
+          resolvers: [HelloResolver, PostResolver, UserResolver, SubredditResolver],
           validate: false
         }),
         context: ({ req, res }) => ({ 
