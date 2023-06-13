@@ -15,14 +15,6 @@ class FieldError{
     message: string;
 }
 
-@ObjectType()
-class SuccessMessage{
-    @Field()
-    field: string;
-
-    @Field()
-    message: string;
-}
 
 
 @ObjectType()
@@ -30,8 +22,8 @@ class SubredditResponse {
     @Field(() => [FieldError], {nullable: true})
     errors?: FieldError[]
 
-    @Field(() => [SuccessMessage], {nullable:true})
-    success?: SuccessMessage[]
+    @Field(() => Subreddit, {nullable:true})
+    subreddit?: Subreddit
 }
 
 
@@ -39,20 +31,15 @@ class SubredditResponse {
 @Resolver(Subreddit)
 export class SubredditResolver {
 
-    @Query(()=>Subreddit, {nullable: true})
-    subreddit(
-        @Arg("id", ()=> Int) id:number
-    ):Promise<Subreddit | null> {
-        return Subreddit.findOne({where: {id:id}})
-    }
-
-    @Mutation(()=> Boolean)
+    // create Subreddit
+    @Mutation(()=> SubredditResponse)
     @UseMiddleware(isAuth)
     async createSubreddit(
         @Arg("name") name: string,
         @Arg("rules") rules: string,
         @Ctx() {req}: MyContext
-    ): Promise<SubredditResponse | boolean> {
+        // should return a subreddit response but getting type issue come back later
+    ): Promise<SubredditResponse> { 
         console.log("length of name is ", name.length)
         if (name.length <= 2 ){
             return {
@@ -65,27 +52,20 @@ export class SubredditResolver {
             }
         }
 
-        const subreddit_old = await Subreddit.findOne({where:{name:name}})
+        const subredditOld = await Subreddit.findOne({where:{name:name}})
         const userId = req.session.userId
-        console.log("userid is ", userId)
 
         // the subreddit cant already exist
-        if (subreddit_old) {
+        if (subredditOld) {
             return {errors: [
                 {
                     field: "name",
-                    message: "name already taken"
+                    message: "Subreddit name already exists. Please choose another"
                 }
             ]}
         }
 
         // the user that created the subreddit will default to being a mod
-
-
-        
-
-        let newSub;
-
         try {
             await dataSource.transaction(async tm => {
                 await tm.query(`
@@ -93,29 +73,54 @@ export class SubredditResolver {
                 values ($1, $2)
                 `, [name, rules])
                 
-
                 await tm.query(`
                 insert into User_Subreddit ("userId", "subredditId")
                 values (${userId}, (select id from subreddit where name = '${name}')) 
                 `)
             })
-            // console.log("new sub data", newSub?.raw)
 
-        } catch(err) {
-                console.log(err)
-    
+        } catch(err) {  
                 return {
                     errors: [{
-                        field: "NA",
-                        message: "Something went wrong"
+                        field: "",
+                        message: "Could not create Subreddit"
                     }]
                 }
         }
 
-
-       return true
+        const  subreddit = await Subreddit.findOne({where: {name:name}}) || undefined
+        return {subreddit}
         
     }
+
+    // retrieve Subreddit
+    @Query(()=>Subreddit, {nullable: true})
+    subreddit(
+        @Arg("id", ()=> Int) id:number
+    ):Promise<Subreddit | null> {
+        return Subreddit.findOne({where: {id:id}})
+    }
+
+    // update Subreddit
+    @Mutation(()=>Boolean)
+    @UseMiddleware(isAuth)
+    async deleteSubreddit (
+        @Arg("name") name:string
+    ): Promise<boolean | SubredditResponse> {
+        try {
+            await Subreddit.delete({name:name})
+        } catch (err) {
+            return {errors: [{
+                field: "name",
+                message: "Could not delete subreddit"
+            }]}
+        }
+        
+        return true
+    }
+
+
+    // delete Subreddit
 
 
 
